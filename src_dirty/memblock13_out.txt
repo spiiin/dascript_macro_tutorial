@@ -1,0 +1,25 @@
+---gen_text--------------
+// [modifyArgument]
+[privateFunction]def init`struct`Memblock ( var memblock : Memblock; var a`count : int; var b`count : int; var c`count : int )
+        memblock.a`count = a`count
+        memblock.b`count = b`count
+        memblock.c`count = c`count
+        let aSize : int = (a`count * 4)
+        let bSize : int = (b`count * 4)
+        let cSize : int = (c`count * 4)
+        let totalSize : int = (aSize + (bSize + cSize))
+        __::builtin`resize(memblock.mem,totalSize)
+        memblock.a = reinterpret<int?> addr(memblock.mem[0])
+        memblock.b = reinterpret<float?> addr(memblock.mem[(aSize + 0)])
+        memblock.c = reinterpret<int?> addr(memblock.mem[(aSize + (bSize + 0))])
+		
+struct Memblock {
+        int32_t * a;
+        float * b;
+        int32_t * c;
+        TArray<uint8_t> mem;
+        int32_t a`count;
+        int32_t b`count;
+        int32_t c`count;
+}
+Memblock = [[ 287454020; 15837566074880.000000000; -1430532899; [[ 0x44; 0x33; 0x22; 0x11; 0x0; 0x0; 0x0; 0x0; 0xff; 0xff; 0xff; 0xff; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0; 0x88; 0x77; 0x66; 0x55; 0x0; 0x0; 0x0; 0x0; 0x79; 0xe9; 0xf6; 0x42; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0; 0xdd; 0xcc; 0xbb; 0xaa; 0x0; 0x0; 0x0; 0x0; 0xff; 0xff; 0xff; 0xff; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0; 0x0]]; 5; 5; 5]]

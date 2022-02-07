@@ -1,0 +1,17 @@
+---das------------------// [modifyExternal][modifyArgument]
+def initMemblock ( var memblock : Memblock -const; aCount : int const; bCount : int const; cCount : int const )
+        ExprVar memblock. ExprField a`count ExprCopyRight = ExprVar aCount
+        ExprVar memblock. ExprField b`count ExprCopyRight = ExprVar bCount
+        ExprVar memblock. ExprField c`count ExprCopyRight = ExprVar cCount
+        ExprLet var  ExprLetVariable aSize : int const =  ExprOp2(ExprVar aCount ExprOp2Right * 4)
+        ExprLet var  ExprLetVariable bSize : int const =  ExprOp2(ExprVar bCount ExprOp2Right * 4)
+        ExprLet var  ExprLetVariable cSize : int const =  ExprOp2(ExprVar cCount ExprOp2Right * 4)
+        ExprCall __::builtin`resize( ExprCallArgument ExprVar memblock. ExprField mem, ExprCallArgument  ExprOp2( ExprOp2(ExprVar aSize ExprOp2Right + ExprVar bSize) ExprOp2Right + ExprVar cSize))
+        ExprVar memblock. ExprField a ExprCopyRight = ExprCast reinterpret<int?>  VisitExprRef2Ptr addr(ExprVar memblock. ExprField mem ExprAtIndex[0])
+        ExprVar memblock. ExprField b ExprCopyRight = ExprCast reinterpret<float?>  VisitExprRef2Ptr addr(ExprVar memblock. ExprField mem ExprAtIndex[ExprVar aSize])
+        ExprVar memblock. ExprField c ExprCopyRight = ExprCast reinterpret<int?>  VisitExprRef2Ptr addr(ExprVar memblock. ExprField mem ExprAtIndex[ ExprOp2(ExprVar aSize ExprOp2Right + ExprVar bSize)])
+        ExprCall init`struct`Memblock( ExprCallArgument ExprVar memblock, ExprCallArgument 5, ExprCallArgument 5, ExprCallArgument 5)
+
+---gen-------------------// [modifyExternal]
+[privateFunction]def init`struct`Memblock ( var  /*unsued*/ memblock : Memblock; var  /*unsued*/ a`count : int; var  /*unsued*/ b`count : int; var  /*unsued*/ c`count : int )
+        ExprCall print( ExprCallArgument ExprConstString "Hello, world!\n", ExprCallArgument __context__)

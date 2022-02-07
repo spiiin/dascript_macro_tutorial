@@ -1,0 +1,12 @@
+---gen_text--------------
+// [modifyExternal][modifyArgument]
+[privateFunction]def init`struct`Memblock ( var memblock : Memblock; var a`count : int; var b`count : int; var c`count : int )
+        memblock.a`count = a`count
+        memblock.b`count = b`count
+        memblock.c`count = c`count
+        let aSize : int = (a`count * 4)
+        let bSize : int = (b`count * 4)
+        let cSize : int = (c`count * 4)
+        print(string_builder(aSize,",",bSize,",",cSize),__context__)
+        let totalSize : int = (aSize + (bSize + cSize))
+        print(string_builder(totalSize),__context__)

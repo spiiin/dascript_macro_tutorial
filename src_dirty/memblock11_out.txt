@@ -1,0 +1,35 @@
+---das------------------
+// [modifyArgument]
+def initMemblock ( var memblock : Memblock -const; aCount : int const; bCount : int const; cCount : int const )
+        ExprVar memblock. ExprField a`count ExprCopyRight = ExprVar aCount
+        ExprVar memblock. ExprField b`count ExprCopyRight = ExprVar bCount
+        ExprVar memblock. ExprField c`count ExprCopyRight = ExprVar cCount
+        ExprLet var  ExprLetVariable aSize : int const =  ExprOp2(ExprVar aCount ExprOp2Right * 4)
+        ExprLet var  ExprLetVariable bSize : int const =  ExprOp2(ExprVar bCount ExprOp2Right * 4)
+        ExprLet var  ExprLetVariable cSize : int const =  ExprOp2(ExprVar cCount ExprOp2Right * 4)
+        ExprCall __::builtin`resize( ExprCallArgument ExprVar memblock. ExprField mem, ExprCallArgument  ExprOp2( ExprOp2(ExprVar aSize ExprOp2Right + ExprVar bSize) ExprOp2Right + ExprVar cSize))
+        ExprVar memblock. ExprField a ExprCopyRight = ExprCast reinterpret<int?>  VisitExprRef2Ptr addr(ExprVar memblock. ExprField mem ExprAtIndex[0])
+        ExprVar memblock. ExprField b ExprCopyRight = ExprCast reinterpret<float?>  VisitExprRef2Ptr addr(ExprVar memblock. ExprField mem ExprAtIndex[ExprVar aSize])
+        ExprVar memblock. ExprField c ExprCopyRight = ExprCast reinterpret<int?>  VisitExprRef2Ptr addr(ExprVar memblock. ExprField mem ExprAtIndex[ ExprOp2(ExprVar aSize ExprOp2Right + ExprVar bSize)])
+
+---gen-------------------
+// [modifyExternal][modifyArgument]
+[privateFunction]def init`struct`Memblock ( var memblock : Memblock; var a`count : int; var b`count : int; var c`count : int )
+        ExprVar memblock. ExprField a`count ExprCopyRight = ExprVar a`count
+        ExprVar memblock. ExprField b`count ExprCopyRight = ExprVar b`count
+        ExprVar memblock. ExprField c`count ExprCopyRight = ExprVar c`count
+        ExprLet let  ExprLetVariable aSize : int =  ExprOp2(ExprVar a`count ExprOp2Right * 4)
+        ExprLet let  ExprLetVariable bSize : int =  ExprOp2(ExprVar b`count ExprOp2Right * 4)
+        ExprLet let  ExprLetVariable cSize : int =  ExprOp2(ExprVar c`count ExprOp2Right * 4)
+        ExprCall print( ExprCallArgument ExprStringBuilder string_builder(ExprVar aSize,ExprConstString ",",ExprVar bSize,ExprConstString ",",ExprVar cSize), ExprCallArgument __context__)
+
+---gen_text--------------
+// [modifyExternal][modifyArgument]
+[privateFunction]def init`struct`Memblock ( var memblock : Memblock; var a`count : int; var b`count : int; var c`count : int )
+        memblock.a`count = a`count
+        memblock.b`count = b`count
+        memblock.c`count = c`count
+        let aSize : int = (a`count * 4)
+        let bSize : int = (b`count * 4)
+        let cSize : int = (c`count * 4)
+        print(string_builder(aSize,",",bSize,",",cSize),__context__)
