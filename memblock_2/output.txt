@@ -1,0 +1,17 @@
+//output:
+---gen_text--------------
+// [modifyArgument]
+[privateFunction]def init`struct`Memblock ( var memblock : Memblock; var a`count : int; var b`count : int; var c`count : int; var d`count : int )
+        memblock.a`count = a`count
+        memblock.b`count = b`count
+        memblock.c`count = c`count
+        memblock.d`count = d`count
+        var aSize : int const = (a`count * 4)
+        var bSize : int const = (b`count * 4)
+        var cSize : int const = (c`count * 4)
+        var dSize : int const = (d`count * 8)
+        __::builtin`resize(memblock.mem,((((aSize + 0) + bSize) + cSize) + dSize))
+        memblock.a = reinterpret<int?> addr(memblock.mem[0])
+        memblock.b = reinterpret<float?> addr(memblock.mem[(aSize + 0)])
+        memblock.c = reinterpret<int?> addr(memblock.mem[((aSize + 0) + bSize)])
+        memblock.d = reinterpret<Vec2?> addr(memblock.mem[(((aSize + 0) + bSize) + cSize)])
