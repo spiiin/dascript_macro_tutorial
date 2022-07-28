@@ -1,6 +1,7 @@
 module macro_test
 
 require ast
+require daslib/defer
 require daslib/ast_boost
 require daslib/templates
 require daslib/templates_boost
@@ -59,28 +60,14 @@ def generateStructureFields(var st:StructurePtr)
 
 def generateStructureInitFunction(var st:StructurePtr; ptrsTypeIndexes:array<int>&)
     let ptrFieldsLen = ptrsTypeIndexes |> length
-
-    let fnname = "init`struct`{st.name}"
-    var fn <- new [[Function() at=st.at, atDecl=st.at, name:=fnname]]
-    fn.flags |= FunctionFlags generated
-    fn.flags |= FunctionFlags privateFunction
-
-    //function signature
-    unsafe
-        fn.arguments |> emplace_new <| new [[Variable() at=st.at, name:= "memblock", _type <- new [[TypeDecl() baseType=Type tStructure, structType=addr(*st)]]]]
-    for i in range(0, ptrFieldsLen)
-        let argumentName = "{st.fields[ptrsTypeIndexes[i]].name}`count"
-        fn.arguments |> emplace_new <| new [[Variable() at=st.at, name:= argumentName,  _type := intAstType]]
-    fn.result := typeinfo(ast_typedecl type<void>)
-
-    var blk <- new [[ExprBlock() at=st.at]]
+    var blk : array<ExpressionPtr>; defer_delete(blk)
 
     //-------------------------
     //memblock.a`count = aCount
 
     for i in range(0, ptrFieldsLen)
         let argumentName = "{st.fields[ptrsTypeIndexes[i]].name}`count"
-        blk.list |> emplace_new <| qmacro_expr(
+        blk |> emplace_new <| qmacro_expr(
             ${memblock.$f(argumentName) = $i(argumentName);}
         )
 
@@ -91,7 +78,7 @@ def generateStructureInitFunction(var st:StructurePtr; ptrsTypeIndexes:array<int
         let argumentName = "{st.fields[ptrsTypeIndexes[i]].name}"
         let argumentNameSize = "{argumentName}Size"
         let argumentNameCount = "{argumentName}`count"
-        blk.list |> emplace_new <| qmacro_expr(
+        blk |> emplace_new <| qmacro_expr(
             ${let $i(argumentNameSize) = typeinfo(sizeof *memblock.$f(argumentName)) * $i(argumentNameCount);}
         )
     
@@ -99,14 +86,15 @@ def generateStructureInitFunction(var st:StructurePtr; ptrsTypeIndexes:array<int
     //memblock.mem |> resize(aSize + bSize + cSize)
 
     var sumArgumentsArray: array<ExpressionPtr>
-    sumArgumentsArray |> emplace(new [[ExprConstInt() value=0]])
+    let zero = 0;
+    sumArgumentsArray |> emplace<| qmacro_expr(${$v(zero);})
     for i in range(0, ptrFieldsLen) 
         let argumentName = "{st.fields[ptrsTypeIndexes[i]].name}"
         let nameSize := "{argumentName}Size"
         sumArgumentsArray |> emplace <| qmacro_expr(${$i(nameSize);})
     unsafe
         var sumExpr <- reduce(each(sumArgumentsArray), @@makeSumExpr)
-        blk.list |> emplace_new <| qmacro_expr(
+        blk |> emplace_new <| qmacro_expr(
             ${memblock.mem |> resize($e(sumExpr));}
         )
 
@@ -120,16 +108,20 @@ def generateStructureInitFunction(var st:StructurePtr; ptrsTypeIndexes:array<int
             var subtype := st.fields[ptrsTypeIndexes[i]]._type
             var exprAssign <- qmacro_expr <|
                 unsafe{ memblock.$f(argumentName) = reinterpret<$t(subtype)> addr(memblock.mem[$e(exprStartAddress)]); }
-            blk.list |> emplace_new(exprAssign)
-
-    let variableName = "a"
-    let op1 = 40
-    let op2 = 2
-    var exprLet <-qmacro <|
-        let $i(variableName) = $v(op1) + $v(op2)
-    print(describe(exprLet))
+            blk |> emplace_new(exprAssign)
     //-------------------------
-    fn.body <- blk
+
+    //function signature
+    var fnArguments : array<VariablePtr>;
+    unsafe
+        fnArguments |> emplace_new <| new [[Variable() at=st.at, name:= "memblock", _type <- new [[TypeDecl() baseType=Type tStructure, structType=addr(*st)]]]]
+    var structT <- typeinfo(ast_typedecl type<int>)
+    for i in range(0, ptrFieldsLen)
+        let argumentName = "{st.fields[ptrsTypeIndexes[i]].name}`count"
+        fnArguments |> emplace_new <| new [[Variable() at=st.at, name:= argumentName,  _type := intAstType]]
+    var fn <- qmacro_function("init`struct`{st.name}") <| $ ($a(fnArguments))
+        $b(blk)
+    defer_delete(fn)
     compiling_module() |> add_function(fn)
 
 [structure_macro(name=memblock)]
