@@ -16,18 +16,13 @@ def makeDemoList
 def deleteEveryFifth(lst: ListItem?)
 	var counter = 1
 	var current = lst
-	var prev, deferDelete : ListItem?
 
 	while current != null
-		if counter++ % 5 == 0
-			prev.next = current.next
-			deferDelete = current
-		prev = current
+		if counter++ % 4 == 0
+			var toDelete = current.next
+			current.next = current.next?.next
+			unsafe { delete toDelete; }
 		current = current.next
-		if deferDelete != null
-			unsafe
-				delete deferDelete
-			deferDelete = null
 
 def printList(lst: ListItem?)
 	if lst != null
@@ -47,4 +42,3 @@ def main
 //Output:
 // 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 // 1 2 3 4 6 7 8 9 11 12 13 14 16 17 18 19
-	
