@@ -58,12 +58,12 @@ class PrintVisitor : AstVisitor
         return enu
 // structure
     def override preVisitStructure(str:StructurePtr)
-        if str.annotations.length != 0
+        if length(str.annotations) != 0
             print("[{describe(str.annotations)}]\n")
         print("{str.flags.isClass ? "class" : "struct"} {str.name}\n")
     def override preVisitStructureField(str:StructurePtr;decl:FieldDeclaration;last:bool)
         print("\t")
-        if decl.annotation.length != 0
+        if length(decl.annotation) != 0
             print("[{describe(decl.annotation)}] ")
         print("{decl.name} : {describe([decl=decl._type,extra=extraTypeInfo])}")
         if decl.flags.parentType
@@ -84,13 +84,13 @@ class PrintVisitor : AstVisitor
                 print("// {describe_bitfield(fun.sideEffectFlags)}\n")
         let bfa : FunctionFlags = fun.flags & function_annotation_flags
         print("{describe_bitfield(bfa,"\n")}")
-        if fun.annotations.length != 0
+        if length(fun.annotations) != 0
             print("[{describe(fun.annotations)}]\n")
         print("def {fun.name}")
-        if fun.arguments.length != 0
+        if length(fun.arguments) != 0
             print(" ( ")
-    def override preVisitFunctionBody(fun:FunctionPtr)
-        if fun.arguments.length != 0
+    def override preVisitFunctionBody(fun:FunctionPtr; expr:ExpressionPtr)
+        if length(fun.arguments) != 0
             print(" ) ")
         if fun.result != null && !fun.result.isVoid
             print(" : {describe([decl=fun.result,extra=extraTypeInfo])}")
@@ -99,7 +99,7 @@ class PrintVisitor : AstVisitor
         print("\n")
         return fun
     def override preVisitFunctionArgument(fun:FunctionPtr;arg:VariablePtr;last:bool)
-        if arg.annotation.length != 0
+        if length(arg.annotation) != 0
             print("[{describe(arg.annotation)}] ")
         if !arg._type.flags.constant
             print("var ")
@@ -115,15 +115,15 @@ class PrintVisitor : AstVisitor
 // block
     def override preVisitExprBlock(blk:smart_ptr<ExprBlock>)
         if blk.blockFlags.isClosure
-            if blk.returnType!=null || blk.arguments.length!=0
+            if blk.returnType!=null || length(blk.arguments)!=0
                 print("ExprBlock $(")
-                for arg,argIndex in blk.arguments,range(blk.arguments.length)
-                    if arg.annotation.length != 0
+                for arg,argIndex in blk.arguments,range(length(blk.arguments))
+                    if length(arg.annotation) != 0
                         print("[{describe(arg.annotation)}] ")
                     if arg._type.flags.constant
                         print("var ")
                     print("{arg.name} : {describe([decl=arg._type,extra=extraTypeInfo])}")
-                    if argIndex != blk.arguments.length-1
+                    if argIndex != length(blk.arguments)-1
                         print("; ")
                 print(")")
                 if blk.returnType!=null
@@ -167,7 +167,7 @@ class PrintVisitor : AstVisitor
     def override preVisitExprLetVariable(expr:smart_ptr<ExprLet>;arg:VariablePtr;lastArg:bool)
         if arg.isAccessUnused
             print(" /*unused*/ ")
-        print(" ExprLetVariable {arg.name} : {describe([decl=arg._type,extra=extraTypeInfo])}")
+        print("ExprLetVariable {arg.name} : {describe([decl=arg._type,extra=extraTypeInfo])}")
     def override visitExprLetVariable(expr:smart_ptr<ExprLet>;arg:VariablePtr;lastArg:bool)
         if !lastArg
             print(";")
@@ -268,7 +268,7 @@ class PrintVisitor : AstVisitor
     def override preVisitExprSafeAtIndex(expr:smart_ptr<ExprAt>;index:ExpressionPtr)
         print(" ExprSafeAtIndex?[")
 // is
-    def override preVisitExprIsType(expr:smart_ptr<ExprAt>;typeDecl:TypeDeclPtr)
+    def override preVisitExprIsType(expr:smart_ptr<ExprIs>;typeDecl:TypeDeclPtr): void
         print(" ExprIsType is type<{describe([decl=typeDecl,extra=false,contracts=true])}>")
 // op2
     def override preVisitExprOp2(expr:smart_ptr<ExprOp2>)
@@ -340,7 +340,7 @@ class PrintVisitor : AstVisitor
         print("\n")
 // make variant
     def override preVisitExprMakeVariant(expr:smart_ptr<ExprMakeVariant>)
-        print("[[")
+        print("ExprMakeVariant [[")
         if expr._type != null
             print(" ExprMakeVariant {describe(expr._type)} ")
     def override visitExprMakeVariant(expr:smart_ptr<ExprMakeVariant>) : ExpressionPtr
@@ -354,7 +354,7 @@ class PrintVisitor : AstVisitor
         return decl
 // make structure
     def override preVisitExprMakeStruct(expr:smart_ptr<ExprMakeStruct>)
-        print("[[")
+        print("ExprMakeStruct [[")
         if expr._type != null
             print("{describe(expr._type)}{expr.makeStructFlags.useInitializer ? "()" : ""} ")
     def override visitExprMakeStruct(expr:smart_ptr<ExprMakeStruct>) : ExpressionPtr
@@ -364,14 +364,14 @@ class PrintVisitor : AstVisitor
         if !last
             print("; ")
     def override preVisitExprMakeStructField(expr:smart_ptr<ExprMakeStruct>;index:int;decl:MakeFieldDeclPtr;last:bool)
-        print("{decl.name} {decl.flags.moveSemantics ? "<-" : "=" } ")
+        print("ExprMakeStructField {decl.name} {decl.flags.moveSemantics ? "<-" : "=" } ")
     def override visitExprMakeStructField(expr:smart_ptr<ExprMakeStruct>;index:int;decl:MakeFieldDeclPtr;last:bool)
         if !last
             print(", ")
         return decl
 // make array
     def override preVisitExprMakeArray(expr:smart_ptr<ExprMakeArray>)
-        print("[[")
+        print("ExprMakeArray [[")
         if expr._type != null
             print("{describe(expr._type)} ")
     def override visitExprMakeArray(expr:smart_ptr<ExprMakeArray>) : ExpressionPtr
@@ -383,7 +383,7 @@ class PrintVisitor : AstVisitor
         return init
 // make tuple
     def override preVisitExprMakeTuple(expr:smart_ptr<ExprMakeTuple>)
-        print("[[")
+        print("ExprMakeTuple [[")
         if expr._type != null
             print("{describe(expr._type)} ")
     def override visitExprMakeTuple(expr:smart_ptr<ExprMakeTuple>) : ExpressionPtr
@@ -405,7 +405,7 @@ class PrintVisitor : AstVisitor
         print("; where ")
 // type info
     def override preVisitExprTypeInfo(expr:smart_ptr<ExprTypeInfo>)
-        print("typeinfo({expr.trait}")
+        print("ExprTypeInfo typeinfo({expr.trait}")
         if !empty(expr.subtrait)
             print("<{expr.subtrait}")
             if !empty(expr.extratrait)
@@ -424,12 +424,12 @@ class PrintVisitor : AstVisitor
         return expr
 // label
     def override preVisitExprLabel(expr:smart_ptr<ExprLabel>)
-        print("label {expr.labelName}:")
+        print("ExprLabel label {expr.labelName}:")
         if !empty(expr.comment)
             print("/*{expr.comment}*/")
 // goto
     def override preVisitExprGoto(expr:smart_ptr<ExprGoto>)
-        print("goto ")
+        print("ExprGoto goto ")
         if expr.subexpr==null
             print("label {expr.labelName}")
 // ref to value
@@ -446,16 +446,16 @@ class PrintVisitor : AstVisitor
         return expr
 // @@
     def override preVisitExprAddr(expr:smart_ptr<ExprAddr>)
-        print("@@")
+        print("ExprAddr @@")
         if expr.funcType != null
             print("<{describe(expr.funcType)}>")
         print("{expr.target}")
 // ascend
     def override preVisitExprAscend(expr:smart_ptr<ExprAscend>)
         if expr.ascType != null
-            print("new<{describe(expr.ascType)}> ")
+            print("ExprAscend new<{describe(expr.ascType)}> ")
         else
-            print("new ")
+            print("ExprAscend new ")
 // cast
     def override preVisitExprCast(expr:smart_ptr<ExprCast>)
         if expr.castFlags.reinterpretCast
@@ -491,15 +491,15 @@ class PrintVisitor : AstVisitor
         return expr
 // is variant
     def override visitExprIsVariant(expr:smart_ptr<ExprIsVariant>) : ExpressionPtr
-        print(" is {expr.name}")
+        print(" ExprIsVariant is {expr.name}")
         return expr
 // as variant
     def override visitExprAsVariant(expr:smart_ptr<ExprAsVariant>) : ExpressionPtr
-        print(" as {expr.name}")
+        print(" ExprAsVariant as {expr.name}")
         return expr
 // safe as variant
     def override visitExprSafeAsVariant(expr:smart_ptr<ExprSafeAsVariant>) : ExpressionPtr
-        print(" ?as {expr.name}")
+        print(" ExprSafeAsVariant ?as {expr.name}")
         return expr
 // op1
     def override preVisitExprOp1(expr:smart_ptr<ExprOp1>) : void
@@ -524,15 +524,15 @@ class PrintVisitor : AstVisitor
             print("<- ")
 // yield
     def override preVisitExprYield(expr:smart_ptr<ExprYield>) : void
-        print("yield ")
+        print("ExprYield yield ")
         if expr.returnFlags.moveSemantics
             print("<- ")
 // break
     def override preVisitExprBreak(expr:smart_ptr<ExprBreak>) : void
-        print("break")
+        print("ExprBreak break")
 // continue
     def override preVisitExprContinue(expr:smart_ptr<ExprContinue>) : void
-        print("continue")
+        print("ExprContinue continue")
 // const ptr
     def override preVisitExprConstPtr(expr:smart_ptr<ExprConstPtr>) : void
         print("{expr.value}")
